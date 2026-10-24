@@ -57,12 +57,16 @@ input:focus{border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(-
 .cur{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;background:var(--bg)}
 .bar{height:18px;background:var(--acc);border-radius:6px;min-width:18px;color:#fff;font-size:12px;text-align:right;padding:0 6px;transition:width .6s}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;gap:6px}.stats b{display:block;font-size:24px}.stats small{color:var(--mut)}
+.bd{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:#e5484d;color:#fff;font:700 11px/18px system-ui;text-align:center;font-style:normal;display:none;padding:0 4px}.bd.on{display:block;animation:pop calc(.3s*var(--a,1))}
+@keyframes ring{10%,30%,50%{transform:rotate(14deg)}20%,40%{transform:rotate(-14deg)}60%,100%{transform:none}}
+#bell.has{animation:ring calc(2.4s*var(--a,1)) ease-in-out infinite}
+.wa{background:#25D366;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(37,211,102,.4)}
 .err{color:#e5484d;font-size:14px;min-height:18px}
 </style></head><body>
 <div class="app">
 
 <section class="scr on" id="home">
- <div class="top"><span class="sp"></span><button class="btn g sm" data-go="acct">👤 <span id="who">Sign in</span></button><button class="btn g sm" data-go="set">⚙️</button></div>
+ <div class="top"><span class="sp"></span><button class="btn g sm" id="bell" data-go="inbox" style="position:relative">🔔<i class="bd" id="bd"></i></button><button class="btn g sm" data-go="acct">👤 <span id="who">Sign in</span></button><button class="btn g sm" data-go="set">⚙️</button></div>
  <div style="margin-top:6vh"><h1>Guess <span>It!</span></h1><p class="sub">One player picks a secret word. The other cracks it.</p></div>
  <div class="card" style="margin-top:3vh">
   <button class="btn" data-setup="pass">🤝 Pass the device</button>
@@ -83,6 +87,9 @@ input:focus{border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(-
   <p class="lbl">Invite link — send it to your friend</p>
   <input type="text" id="linkOut" readonly>
   <div class="row"><button class="btn" id="cp">Copy link</button><button class="btn g" id="own">Make another</button></div>
+  <button class="btn wa" id="wa"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 7.5c-.3.3-.9 1-.5 2.2.6 1.7 2.7 4.2 5.3 5 1.1.3 1.8-.3 2.2-.9.2-.3.1-.6-.1-.8l-1.4-.9c-.2-.1-.5-.1-.7.1l-.5.6c-.9-.3-2-1.3-2.5-2.2l.5-.6c.2-.2.2-.5.1-.7L10 7.7c-.2-.3-.9-.5-1.5-.2z" fill="#fff"/></svg>Send on WhatsApp</button>
+  <p class="lbl">Or challenge a friend by username</p>
+  <div class="row"><input type="text" id="sn" placeholder="Friend’s username" autocapitalize="off"><button class="btn sm" id="sendF" style="flex:0">Send</button></div><span class="err" id="sE"></span>
   <p class="sub" style="font-size:13px">The word is scrambled inside the link, so don’t open it yourself if you want to be surprised by nothing.</p>
  </div>
 </section>
@@ -110,13 +117,15 @@ input:focus{border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(-
  <div class="card" id="aOut">
   <p class="sub" id="aMsg">Checking your account…</p>
   <div id="aForm" style="display:none;flex-direction:column;gap:12px">
-  <input type="text" id="un" placeholder="Pick a username" maxlength="16" autocapitalize="off">
+  <input type="text" id="un" placeholder="Username" maxlength="16" autocapitalize="off">
+  <input type="password" id="pw" placeholder="Password (6+ characters)">
   <span class="err" id="aE"></span>
-  <button class="btn" id="signup">Create profile</button></div>
+  <div class="row"><button class="btn" id="signup">Create account</button><button class="btn g" id="login">Log in</button></div></div>
  </div>
  <div class="card" id="aIn" style="display:none">
   <h2 id="aName"></h2><div class="stats" id="aStats"></div>
   <p class="lbl">Guesses needed to win</p><div id="dist" style="display:flex;flex-direction:column;gap:4px"></div>
+  <button class="btn g" id="logout">Log out</button>
  </div>
 </section>
 
@@ -124,6 +133,11 @@ input:focus{border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(-
  <div class="top"><button class="btn g sm" data-go="home">←</button><h2>Friends</h2><span style="width:40px"></span></div>
  <div class="card" id="fAdd"><div class="row"><input type="text" id="fn" placeholder="Friend’s username" autocapitalize="off"><button class="btn sm" id="fb" style="flex:0">Add</button></div><span class="err" id="fE"></span></div>
  <div id="fList" style="display:flex;flex-direction:column;gap:8px"></div>
+</section>
+
+<section class="scr" id="inbox">
+ <div class="top"><button class="btn g sm" data-go="home">←</button><h2>Challenges</h2><span style="width:40px"></span></div>
+ <div id="iList" style="display:flex;flex-direction:column;gap:8px"></div>
 </section>
 
 <section class="scr" id="set">
@@ -154,7 +168,7 @@ $("#sw").innerHTML=ACC.map(c=>`<button data-c="${c}" style="background:${c}"></b
 $("#sw").onclick=e=>{if(e.target.dataset.c){ST.acc=e.target.dataset.c;apply()}};
 $$(".seg").forEach(s=>s.onclick=e=>{if(e.target.dataset.v!==undefined){ST[s.dataset.k]=e.target.dataset.v;apply()}});
 const A=()=>+ST.anim;
-function show(id){$$(".scr").forEach(s=>s.classList.remove("on"));void $("#"+id).offsetWidth;$("#"+id).classList.add("on");if(id==="acct")renderAcct();if(id==="friends")renderFriends();if(id==="home")$("#who").textContent=cur||"Sign in"}
+function show(id){$$(".scr").forEach(s=>s.classList.remove("on"));void $("#"+id).offsetWidth;$("#"+id).classList.add("on");if(id==="acct")renderAcct();if(id==="friends")renderFriends();if(id==="inbox")renderInbox();if(id==="home")$("#who").textContent=cur||"Sign in"}
 $$("[data-go]").forEach(b=>b.onclick=()=>show(b.dataset.go));
 let tT;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tT);tT=setTimeout(()=>t.classList.remove("on"),1800)}
 
@@ -214,26 +228,39 @@ function finish(win,n){over=true;setTimeout(()=>{
  show("end")},A()?500:0)}
 $("#again").onclick=()=>{if(fromLink){fromLink=false;try{history.replaceState(null,"",GH?"/guessit/":location.href.split("#")[0])}catch(e){}openSetup("link")}else{guesser=3-guesser;openSetup("pass")}};
 
-/* cloud accounts (shared db, tied to your claude.ai identity) */
-cur=null;let DB=null,UID=null,me=null,tried=false;
-const mk=()=>({g:0,w:0,st:0,best:0,dist:[]});
+/* accounts via your own server */
+const API_URL="https://guessit-r0dt.onrender.com"; // your Render server
+cur=null;let me=null,TOK=ls.get("gi_tok",null),online=false,tried=false,inv=[];
 const esc=s=>String(s).replace(/[<>&"']/g,"");
-async function cloud(){try{const c=window.claude;if(c&&c.use){const [d,u]=await Promise.all([c.use("db"),c.use("user")]);if(d&&u){UID=await u.id();if(UID){DB=d;const s=await DB.doc("profiles/"+UID).get();me=s.exists?s.data():null;cur=me?me.username:null;$("#who").textContent=cur||"Sign in"}}}}catch(e){}tried=true;if($("#acct").classList.contains("on"))renderAcct();if($("#friends").classList.contains("on"))renderFriends()}
-$("#signup").onclick=async()=>{const n=$("#un").value.trim().toLowerCase(),e=$("#aE");if(!/^[a-z0-9_]{3,16}$/.test(n)){e.textContent="Username: 3–16 letters, numbers or _";return}
- try{const q=await DB.collection("profiles").where("username","==",n).get();if(!q.empty){e.textContent="That name is taken";return}const p={username:n,stats:mk(),friends:[]};await DB.doc("profiles/"+UID).set(p);me=p;cur=n;toast("Welcome, "+n+"!");renderAcct()}catch(x){e.textContent="Couldn’t save. You may need Contributor access to this page."}};
-async function saveStats(win,n){if(!me||!DB)return;const s=JSON.parse(JSON.stringify(me.stats));s.g++;if(win){s.w++;s.st++;s.best=Math.max(s.best,s.st);s.dist[n-1]=(s.dist[n-1]||0)+1}else s.st=0;me={...me,stats:s};try{await DB.doc("profiles/"+UID).update({stats:s})}catch(e){}}
+async function api(p,method="GET",body){let r;try{r=await fetch(API_URL+"/api"+p,{method,headers:{"Content-Type":"application/json",...(TOK?{Authorization:"Bearer "+TOK}:{})},body:body?JSON.stringify(body):undefined})}catch(e){throw new Error("Can’t reach the server")}
+ let j={};try{j=await r.json()}catch(e){}if(!r.ok){const x=new Error(j.error||"Something went wrong");x.status=r.status;throw x}return j}
+function setMe(p){me=p;cur=p?p.username:null;$("#who").textContent=cur||"Sign in"}
+function badge(){const n=inv.length;$("#bd").textContent=n;$("#bd").classList.toggle("on",n>0);$("#bell").classList.toggle("has",n>0)}
+async function pollInv(){if(!me)return;try{inv=(await api("/invites")).invites;badge();if($("#inbox").classList.contains("on"))renderInbox()}catch(e){}}
+setInterval(pollInv,15000);
+async function cloud(){try{await api("/ping");online=true;if(TOK){try{setMe(await api("/me"));pollInv()}catch(e){if(e.status===401){TOK=null;ls.set("gi_tok",null)}}}}catch(e){}
+ tried=true;if($("#acct").classList.contains("on"))renderAcct();if($("#friends").classList.contains("on"))renderFriends()}
+async function auth(kind){const e=$("#aE");e.textContent="";try{const r=await api("/"+kind,"POST",{username:$("#un").value.trim().toLowerCase(),password:$("#pw").value});TOK=r.token;ls.set("gi_tok",TOK);setMe(r.profile);$("#pw").value="";toast("Welcome, "+me.username+"!");renderAcct();pollInv()}catch(x){e.textContent=x.message}}
+$("#signup").onclick=()=>auth("signup");$("#login").onclick=()=>auth("login");
+$("#logout").onclick=async()=>{try{await api("/logout","POST")}catch(e){}TOK=null;ls.set("gi_tok",null);setMe(null);inv=[];badge();renderAcct()};
+async function saveStats(win,n){if(!me)return;try{setMe(await api("/stats","POST",{win,n}))}catch(e){}}
 const sBlock=s=>`<div><b>${s.g}</b><small>Played</small></div><div><b>${s.g?Math.round(100*s.w/s.g):0}%</b><small>Wins</small></div><div><b>${s.st}</b><small>Streak</small></div><div><b>${s.best}</b><small>Best</small></div>`;
-function renderAcct(){$("#aE").textContent="";const on=!!me;$("#aOut").style.display=on?"none":"";$("#aIn").style.display=on?"":"none";
- $("#aMsg").textContent=DB?"Pick a username. Your profile follows your claude.ai account to any device.":tried?"Cross-device accounts need you signed in to claude.ai on a page shared with Contributor access. You can still play as a guest.":"Checking your account…";$("#aForm").style.display=DB?"flex":"none";if(!on)return;
+function renderAcct(){$("#aE").textContent="";$("#aOut").style.display=me?"none":"";$("#aIn").style.display=me?"":"none";
+ $("#aMsg").textContent=online?"Log in or create an account. It works on any device.":tried?"Can’t reach the Guess It! server. Check API_URL in the game file. You can still play as a guest.":"Connecting…";$("#aForm").style.display=online?"flex":"none";if(!me)return;
  const s=me.stats;$("#aName").textContent="@"+me.username;$("#aStats").innerHTML=sBlock(s);const mx=Math.max(1,...s.dist.map(x=>x||0));
  $("#dist").innerHTML=Array.from({length:8},(_,i)=>i).filter(i=>i<+ST.tries||s.dist[i]).map(i=>`<div class="row" style="gap:6px"><span style="flex:0 0 14px">${i+1}</span><div style="flex:1"><div class="bar" style="width:${Math.max(6,100*(s.dist[i]||0)/mx)}%">${s.dist[i]||0}</div></div></div>`).join("")}
-$("#fb").onclick=async()=>{const n=$("#fn").value.trim().toLowerCase(),e=$("#fE");if(!me){e.textContent="Create a profile first.";return}if(n===me.username){e.textContent="That’s you!";return}
- try{const q=await DB.collection("profiles").where("username","==",n).get();if(q.empty){e.textContent="No one has that username yet.";return}const id=q.docs[0].id;if(me.friends.includes(id)){e.textContent="Already friends.";return}const f=[...me.friends,id];await DB.doc("profiles/"+UID).update({friends:f});me={...me,friends:f};$("#fn").value="";e.textContent="";renderFriends()}catch(x){e.textContent="Couldn’t add friend."}};
+$("#fb").onclick=async()=>{const e=$("#fE");e.textContent="";if(!me){e.textContent="Log in first.";return}try{await api("/friends","POST",{username:$("#fn").value});$("#fn").value="";renderFriends()}catch(x){e.textContent=x.message}};
 async function renderFriends(){const l=$("#fList");$("#fAdd").style.display=me?"":"none";
- if(!me){l.innerHTML=`<div class="card"><p class="sub">Create a profile to add friends and compare progress.</p><button class="btn">Account</button></div>`;l.querySelector("button").onclick=()=>show("acct");return}
- if(!me.friends.length){l.innerHTML=`<p class="sub">No friends yet. Add a username above.</p>`;return}
- const ps=await Promise.all(me.friends.map(id=>DB.doc("profiles/"+id).get().then(s=>s.data()).catch(()=>null)));
- l.innerHTML=ps.map(u=>u&&u.stats?`<div class="card"><b>@${esc(u.username)}</b><div class="stats">${sBlock(u.stats)}</div></div>`:"").join("")}
+ if(!me){l.innerHTML=`<div class="card"><p class="sub">Log in to add friends and compare progress.</p><button class="btn">Account</button></div>`;l.querySelector("button").onclick=()=>show("acct");return}
+ try{const f=(await api("/friends")).friends;l.innerHTML=f.length?f.map(u=>`<div class="card"><b>@${esc(u.username)}</b><div class="stats">${sBlock(u.stats)}</div></div>`).join(""):`<p class="sub">No friends yet. Add a username above.</p>`}catch(e){l.innerHTML=`<p class="sub">Couldn’t load friends.</p>`}}
+function renderInbox(){const l=$("#iList");if(!me){l.innerHTML=`<div class="card"><p class="sub">Log in to receive challenges from friends.</p></div>`;return}
+ l.innerHTML=inv.length?inv.map((x,i)=>`<div class="card"><div><b>@${esc(x.from)}</b> challenged you!</div><div class="row"><button class="btn" data-p="${i}">Play</button><button class="btn g" data-x="${i}">Dismiss</button></div></div>`).join(""):`<p class="sub">No challenges yet. 🔔</p>`}
+$("#iList").onclick=async e=>{const p=e.target.dataset.p,x=e.target.dataset.x;
+ if(p!==undefined){const v=inv[p],w=dec(v.code);if(!/^[a-z]{4,8}$/.test(w)){toast("That challenge is broken");return}secret=w;fromLink=true;startGame();try{await api("/invites/"+v.id,"DELETE")}catch(e){}pollInv()}
+ else if(x!==undefined){try{await api("/invites/"+inv[x].id,"DELETE")}catch(e){}pollInv()}};
+$("#sendF").onclick=async()=>{const e=$("#sE");e.textContent="";if(!me){e.textContent="Log in first.";return}
+ try{await api("/invites","POST",{to:$("#sn").value,code:$("#linkOut").value.split(/[#\/]/).pop()});$("#sn").value="";toast("Challenge sent!")}catch(x){e.textContent=x.message}};
+$("#wa").onclick=()=>{const msg=`${me?me.username:"Someone"} Has Challenged You to Guess Their Word! Click the Link and see if you WIN!!!\n${$("#linkOut").value}`;const w=window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank","noopener");if(!w)toast("Couldn’t open WhatsApp")};
 
 /* boot */
 function boot(){apply();$("#who").textContent=cur||"Sign in";const h=codeFromUrl();
