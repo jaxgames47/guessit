@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guess It!</title>
+<style>
+:root{--bg:#f6f5fb;--fg:#1b1a24;--card:#fff;--mut:#7d7a90;--line:#dcd9ea;--acc:#7c5cff;--ok:#2fb86b;--mid:#e5a823;--no:#8b889c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--r:12px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14131c;--fg:#f1f0f8;--card:#1e1d2a;--mut:#9b98b0;--line:#33314a;--no:#3d3b52}}
+:root[data-theme="dark"]{--bg:#14131c;--fg:#f1f0f8;--card:#1e1d2a;--mut:#9b98b0;--line:#33314a;--no:#3d3b52}
+:root[data-cb="1"]{--ok:#f0833a;--mid:#4aa3f0}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;transition:background .4s,color .4s;overflow-x:hidden}
+.app{max-width:520px;margin:0 auto;min-height:100%;padding:16px;display:flex;flex-direction:column}
+.scr{display:none;flex:1;flex-direction:column;gap:14px}
+.scr.on{display:flex;animation:in calc(.45s*var(--a,1)) cubic-bezier(.2,.8,.2,1)}
+@keyframes in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+h1{font-size:44px;letter-spacing:-1.5px;text-align:center}
+h1 span{color:var(--acc)}
+h2{font-size:22px}
+.sub{color:var(--mut);text-align:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.btn{border:0;border-radius:14px;padding:14px 18px;font:inherit;font-weight:650;cursor:pointer;background:var(--acc);color:#fff;transition:transform .15s,filter .2s,box-shadow .2s;box-shadow:0 4px 14px color-mix(in srgb,var(--acc) 35%,transparent)}
+.btn:hover{filter:brightness(1.08);transform:translateY(-2px)}
+.btn:active{transform:scale(.97)}
+.btn.g{background:var(--card);color:var(--fg);border:1px solid var(--line);box-shadow:none}
+.btn.sm{padding:8px 12px;font-size:14px;border-radius:10px}
+input[type=text],input[type=password]{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--fg);font:inherit;outline:0;transition:border-color .2s,box-shadow .2s}
+input:focus{border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 20%,transparent)}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top .btn{flex:0}
+.sp{flex:1}
+.grid{display:grid;gap:6px;margin:6px auto;width:100%}
+.rw{display:grid;gap:6px;grid-template-columns:repeat(var(--L),1fr)}
+.t{aspect-ratio:1;border:2px solid var(--line);border-radius:var(--r);display:grid;place-items:center;font-weight:800;font-size:clamp(18px,6vw,30px);text-transform:uppercase;background:var(--card);max-height:62px;justify-self:center;width:100%}
+.t.f{border-color:var(--mut);animation:pop calc(.12s*var(--a,1))}
+.t.ok{background:var(--ok);border-color:var(--ok);color:#fff}.t.mid{background:var(--mid);border-color:var(--mid);color:#fff}.t.no{background:var(--no);border-color:var(--no);color:#fff}
+@keyframes pop{50%{transform:scale(1.12)}}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+@keyframes hop{40%{transform:translateY(-16px)}70%{transform:translateY(3px)}}
+.shake{animation:shake calc(.4s*var(--a,1))}
+.kb{display:flex;flex-direction:column;gap:6px;margin-top:auto;padding-top:8px}
+.kr{display:flex;gap:5px;justify-content:center}
+.k{flex:1;max-width:44px;height:50px;border:0;border-radius:9px;background:var(--line);color:var(--fg);font:700 14px inherit;text-transform:uppercase;cursor:pointer;transition:background .3s,transform .1s}
+.k:active{transform:scale(.9)}.k.w{flex:1.6;max-width:66px;font-size:12px}
+.k.ok{background:var(--ok);color:#fff}.k.mid{background:var(--mid);color:#fff}.k.no{background:var(--no);color:#fff;opacity:.6}
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:none;color:var(--mut);padding:8px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;transition:all .25s}
+.seg button.on{background:var(--acc);color:#fff}
+.sw{display:flex;gap:10px}.sw button{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .2s}
+.sw button.on{border-color:var(--fg);transform:scale(1.15)}
+.lbl{font-weight:650;font-size:14px;color:var(--mut)}
+.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translate(-50%,-80px);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:12px;font-weight:600;transition:transform .35s cubic-bezier(.2,.9,.3,1.3);z-index:9}
+.toast.on{transform:translate(-50%,0)}
+.big{font-size:64px;text-align:center;animation:hop calc(.8s*var(--a,1)) infinite}
+.cur{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;background:var(--bg)}
+.bar{height:18px;background:var(--acc);border-radius:6px;min-width:18px;color:#fff;font-size:12px;text-align:right;padding:0 6px;transition:width .6s}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;gap:6px}.stats b{display:block;font-size:24px}.stats small{color:var(--mut)}
+.err{color:#e5484d;font-size:14px;min-height:18px}
+</style></head><body>
+<div class="app">
+
+<section class="scr on" id="home">
+ <div class="top"><span class="sp"></span><button class="btn g sm" data-go="acct">👤 <span id="who">Sign in</span></button><button class="btn g sm" data-go="set">⚙️</button></div>
+ <div style="margin-top:6vh"><h1>Guess <span>It!</span></h1><p class="sub">One player picks a secret word. The other cracks it.</p></div>
+ <div class="card" style="margin-top:3vh">
+  <button class="btn" data-setup="pass">🤝 Pass the device</button>
+  <button class="btn g" data-setup="link">🔗 Send an invite link</button>
+  <button class="btn g" data-go="friends">👥 Friends &amp; progress</button>
+ </div>
+</section>
+
+<section class="scr" id="setup">
+ <div class="top"><button class="btn g sm" data-go="home">←</button><h2 id="stT"></h2><span style="width:40px"></span></div>
+ <div class="card">
+  <p class="sub" id="stD"></p>
+  <input type="password" id="secret" maxlength="8" placeholder="Secret word (4–8 letters)" autocomplete="off" autocapitalize="off">
+  <div class="row"><button class="btn g sm" id="peek">👁 Show</button><span class="err" id="stE"></span></div>
+  <button class="btn" id="stGo"></button>
+ </div>
+ <div class="card" id="linkBox" style="display:none">
+  <p class="lbl">Invite link — send it to your friend</p>
+  <input type="text" id="linkOut" readonly>
+  <div class="row"><button class="btn" id="cp">Copy link</button><button class="btn g" id="own">Make another</button></div>
+  <p class="sub" style="font-size:13px">The word is scrambled inside the link, so don’t open it yourself if you want to be surprised by nothing.</p>
+ </div>
+</section>
+
+<section class="scr" id="pass" style="justify-content:center;text-align:center">
+ <div class="big">🫴</div><h2 id="passT"></h2><p class="sub">The secret word is locked in. No peeking!</p>
+ <button class="btn" id="ready">I’m ready</button>
+</section>
+
+<section class="scr" id="game">
+ <div class="top"><button class="btn g sm" data-go="home">✕</button><div class="sub" id="gInfo"></div><span style="width:40px"></span></div>
+ <div class="grid" id="grid"></div>
+ <div class="kb" id="kb"></div>
+</section>
+
+<section class="scr" id="end" style="justify-content:center;text-align:center">
+ <div class="big" id="eE"></div><h2 id="eT"></h2><p class="sub" id="eD"></p>
+ <div class="card" id="eS" style="display:none"></div>
+ <button class="btn" id="again"></button>
+ <button class="btn g" data-go="home">Home</button>
+</section>
+
+<section class="scr" id="acct">
+ <div class="top"><button class="btn g sm" data-go="home">←</button><h2>Account</h2><span style="width:40px"></span></div>
+ <div class="card" id="aOut">
+  <p class="sub" id="aMsg">Checking your account…</p>
+  <div id="aForm" style="display:none;flex-direction:column;gap:12px">
+  <input type="text" id="un" placeholder="Pick a username" maxlength="16" autocapitalize="off">
+  <span class="err" id="aE"></span>
+  <button class="btn" id="signup">Create profile</button></div>
+ </div>
+ <div class="card" id="aIn" style="display:none">
+  <h2 id="aName"></h2><div class="stats" id="aStats"></div>
+  <p class="lbl">Guesses needed to win</p><div id="dist" style="display:flex;flex-direction:column;gap:4px"></div>
+ </div>
+</section>
+
+<section class="scr" id="friends">
+ <div class="top"><button class="btn g sm" data-go="home">←</button><h2>Friends</h2><span style="width:40px"></span></div>
+ <div class="card" id="fAdd"><div class="row"><input type="text" id="fn" placeholder="Friend’s username" autocapitalize="off"><button class="btn sm" id="fb" style="flex:0">Add</button></div><span class="err" id="fE"></span></div>
+ <div id="fList" style="display:flex;flex-direction:column;gap:8px"></div>
+</section>
+
+<section class="scr" id="set">
+ <div class="top"><button class="btn g sm" data-go="home">←</button><h2>Settings</h2><span style="width:40px"></span></div>
+ <div class="card">
+  <span class="lbl">Theme</span><div class="seg" data-k="theme"><button data-v="auto">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
+  <span class="lbl">Accent colour</span><div class="sw" id="sw"></div>
+  <span class="lbl">Tile shape</span><div class="seg" data-k="shape"><button data-v="12px">Rounded</button><button data-v="3px">Square</button><button data-v="50%">Circle</button></div>
+  <span class="lbl">Animations</span><div class="seg" data-k="anim"><button data-v="0">Off</button><button data-v="1">Smooth</button><button data-v="1.8">Slow</button></div>
+  <span class="lbl">Number of tries</span><div class="seg" data-k="tries"><button data-v="4">4</button><button data-v="6">6</button><button data-v="8">8</button></div>
+  <span class="lbl">Colour-blind friendly</span><div class="seg" data-k="cb"><button data-v="0">Off</button><button data-v="1">On</button></div>
+ </div>
+</section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const mem={};
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return mem[k]??d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){mem[k]=v}}};
+let ST=Object.assign({theme:"auto",acc:"#7c5cff",shape:"12px",anim:"1",tries:"6",cb:"0"},ls.get("gi_set",{}));
+let users=ls.get("gi_users",{}),cur=ls.get("gi_cur",null);
+const ACC=["#7c5cff","#ff5c8a","#12a4d9","#2fb86b","#f08a24"];
+function apply(){const r=document.documentElement;r.dataset.theme=ST.theme;r.dataset.cb=ST.cb;r.style.setProperty("--acc",ST.acc);r.style.setProperty("--r",ST.shape);r.style.setProperty("--a",ST.anim);
+ $$(".seg").forEach(s=>$$("button",s)&&[...s.children].forEach(b=>b.classList.toggle("on",String(ST[s.dataset.k])===b.dataset.v)));
+ $$("#sw button").forEach(b=>b.classList.toggle("on",b.dataset.c===ST.acc));ls.set("gi_set",ST)}
+$("#sw").innerHTML=ACC.map(c=>`<button data-c="${c}" style="background:${c}"></button>`).join("");
+$("#sw").onclick=e=>{if(e.target.dataset.c){ST.acc=e.target.dataset.c;apply()}};
+$$(".seg").forEach(s=>s.onclick=e=>{if(e.target.dataset.v!==undefined){ST[s.dataset.k]=e.target.dataset.v;apply()}});
+const A=()=>+ST.anim;
+function show(id){$$(".scr").forEach(s=>s.classList.remove("on"));void $("#"+id).offsetWidth;$("#"+id).classList.add("on");if(id==="acct")renderAcct();if(id==="friends")renderFriends();if(id==="home")$("#who").textContent=cur||"Sign in"}
+$$("[data-go]").forEach(b=>b.onclick=()=>show(b.dataset.go));
+let tT;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tT);tT=setTimeout(()=>t.classList.remove("on"),1800)}
+
+/* encoding for invite links */
+const enc=w=>"w"+btoa([...w].map(c=>String.fromCharCode(c.charCodeAt(0)+7)).join("")).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
+const dec=t=>{try{return atob(t.slice(1).replace(/-/g,"+").replace(/_/g,"/")).split("").map(c=>String.fromCharCode(c.charCodeAt(0)-7)).join("")}catch(e){return ""}};
+
+const GH=location.hostname==="jaxgames47.github.io",SITE="https://jaxgames47.github.io/guessit/";
+function codeFromUrl(){const h=location.hash.slice(1);if(h&&h[0]==="w")return h;const s=location.pathname.split("/").filter(Boolean).pop()||"";return /^w[A-Za-z0-9_-]{5,}$/.test(s)?s:""}
+/* setup */
+let mode="pass",tally={1:0,2:0},guesser=2,secret="",fromLink=false;
+$$("[data-setup]").forEach(b=>b.onclick=()=>openSetup(b.dataset.setup));
+function openSetup(m){mode=m;$("#secret").value="";$("#stE").textContent="";$("#linkBox").style.display="none";$("#stGo").style.display="";
+ $("#stT").textContent=m==="pass"?`Player ${3-guesser}: pick a word`:"Create an invite";
+ $("#stD").textContent=m==="pass"?`Player ${guesser} look away! Type a secret word, then pass the device.`:"Type a secret word and we’ll make a link for your friend.";
+ $("#stGo").textContent=m==="pass"?"Lock it in & pass":"Create invite link";show("setup")}
+$("#peek").onclick=()=>{const s=$("#secret");s.type=s.type==="password"?"text":"password"};
+$("#secret").oninput=e=>e.target.value=e.target.value.replace(/[^a-z]/gi,"");
+$("#stGo").onclick=()=>{const w=$("#secret").value.toLowerCase();if(w.length<4){$("#stE").textContent="Use 4–8 letters.";return}
+ if(mode==="pass"){secret=w;fromLink=false;$("#secret").value="";$("#secret").type="password";$("#passT").textContent=`Pass to Player ${guesser}`;show("pass")}
+ else{$("#linkOut").value=(GH?SITE:location.href.split("#")[0]+"#")+enc(w);$("#linkBox").style.display="flex";$("#stGo").style.display="none"}};
+$("#cp").onclick=async()=>{const i=$("#linkOut");try{await navigator.clipboard.writeText(i.value);toast("Link copied!")}catch(e){i.select();toast("Press copy on your keyboard")}};
+$("#own").onclick=()=>openSetup("link");
+$("#ready").onclick=startGame;
+
+/* game */
+let L=0,N=6,row=0,col=0,cells=[],busy=false,over=false,keys={};
+function startGame(){L=secret.length;N=+ST.tries;row=0;col=0;busy=false;over=false;keys={};
+ $("#gInfo").textContent=fromLink?"Invite challenge":`Player ${guesser} guessing`;
+ const g=$("#grid");g.style.setProperty("--L",L);g.style.maxWidth=Math.min(L*66,380)+"px";g.innerHTML="";cells=[];
+ for(let r=0;r<N;r++){const d=document.createElement("div");d.className="rw";cells.push([]);for(let c=0;c<L;c++){const t=document.createElement("div");t.className="t";d.append(t);cells[r].push(t)}g.append(d)}
+ const rows=["qwertyuiop","asdfghjkl","*zxcvbnm<"];$("#kb").innerHTML=rows.map(r=>`<div class="kr">${[...r].map(k=>k=="*"?'<button class="k w" data-k="Enter">Enter</button>':k=="<"?'<button class="k w" data-k="Backspace">⌫</button>':`<button class="k" data-k="${k}">${k}</button>`).join("")}</div>`).join("");
+ show("game")}
+$("#kb").onclick=e=>{const k=e.target.closest("[data-k]");if(k)press(k.dataset.k)};
+document.addEventListener("keydown",e=>{if(!$("#game").classList.contains("on")||e.ctrlKey||e.metaKey||e.altKey)return;if(e.key==="Enter"||e.key==="Backspace"||/^[a-z]$/i.test(e.key))press(e.key)});
+function press(k){if(busy||over)return;
+ if(k==="Backspace"){if(col>0){col--;const t=cells[row][col];t.textContent="";t.classList.remove("f")}}
+ else if(k==="Enter"){submit()}
+ else if(/^[a-z]$/i.test(k)&&col<L){const t=cells[row][col];t.textContent=k;t.classList.add("f");col++}}
+function submit(){if(col<L){const r=$$(".rw")[row];r.classList.remove("shake");void r.offsetWidth;r.classList.add("shake");toast("Not enough letters");return}
+ const g=cells[row].map(t=>t.textContent.toLowerCase()).join(""),res=Array(L).fill("no"),pool=[...secret];
+ for(let i=0;i<L;i++)if(g[i]===secret[i]){res[i]="ok";pool[i]=null}
+ for(let i=0;i<L;i++)if(res[i]==="no"){const j=pool.indexOf(g[i]);if(j>-1){res[i]="mid";pool[j]=null}}
+ busy=true;const d=380*A(),step=d*.6,r=row;
+ cells[r].forEach((t,i)=>{if(A())t.style.animation=`flip ${d}ms ${i*step}ms both`;setTimeout(()=>{t.classList.add(res[i]);const k=$(`[data-k="${g[i]}"]`),rk=["no","mid","ok"];if(k&&(!keys[g[i]]||rk.indexOf(res[i])>rk.indexOf(keys[g[i]]))){keys[g[i]]=res[i];k.classList.remove("no","mid","ok");k.classList.add(res[i])}},A()?i*step+d/2:0)});
+ const done=A()?(L-1)*step+d+60:0;
+ setTimeout(()=>{busy=false;const win=g===secret;
+  if(win){if(A())cells[r].forEach((t,i)=>t.style.animation=`hop ${600*A()}ms ${i*80*A()}ms`);setTimeout(()=>finish(true,r+1),A()?L*80*A()+600*A():0)}
+  else if(r+1>=N){finish(false,N)}else{row++;col=0}},done)}
+function finish(win,n){over=true;setTimeout(()=>{
+ if(!fromLink&&win)tally[guesser]++;
+ saveStats(win,n);
+ $("#eE").textContent=win?"🎉":"😅";$("#eT").textContent=win?`Solved in ${n}!`:"Out of tries";
+ $("#eD").innerHTML=`The word was <b style="color:var(--acc);text-transform:uppercase">${secret}</b>`;
+ const sc=$("#eS");if(fromLink){sc.style.display="none";$("#again").textContent="Make my own word"}
+ else{sc.style.display="";sc.innerHTML=`<div class="stats" style="grid-template-columns:1fr 1fr"><div><b>${tally[1]}</b><small>Player 1</small></div><div><b>${tally[2]}</b><small>Player 2</small></div></div>`;$("#again").textContent="Swap roles & play again"}
+ show("end")},A()?500:0)}
+$("#again").onclick=()=>{if(fromLink){fromLink=false;try{history.replaceState(null,"",GH?"/guessit/":location.href.split("#")[0])}catch(e){}openSetup("link")}else{guesser=3-guesser;openSetup("pass")}};
+
+/* cloud accounts (shared db, tied to your claude.ai identity) */
+cur=null;let DB=null,UID=null,me=null,tried=false;
+const mk=()=>({g:0,w:0,st:0,best:0,dist:[]});
+const esc=s=>String(s).replace(/[<>&"']/g,"");
+async function cloud(){try{const c=window.claude;if(c&&c.use){const [d,u]=await Promise.all([c.use("db"),c.use("user")]);if(d&&u){UID=await u.id();if(UID){DB=d;const s=await DB.doc("profiles/"+UID).get();me=s.exists?s.data():null;cur=me?me.username:null;$("#who").textContent=cur||"Sign in"}}}}catch(e){}tried=true;if($("#acct").classList.contains("on"))renderAcct();if($("#friends").classList.contains("on"))renderFriends()}
+$("#signup").onclick=async()=>{const n=$("#un").value.trim().toLowerCase(),e=$("#aE");if(!/^[a-z0-9_]{3,16}$/.test(n)){e.textContent="Username: 3–16 letters, numbers or _";return}
+ try{const q=await DB.collection("profiles").where("username","==",n).get();if(!q.empty){e.textContent="That name is taken";return}const p={username:n,stats:mk(),friends:[]};await DB.doc("profiles/"+UID).set(p);me=p;cur=n;toast("Welcome, "+n+"!");renderAcct()}catch(x){e.textContent="Couldn’t save. You may need Contributor access to this page."}};
+async function saveStats(win,n){if(!me||!DB)return;const s=JSON.parse(JSON.stringify(me.stats));s.g++;if(win){s.w++;s.st++;s.best=Math.max(s.best,s.st);s.dist[n-1]=(s.dist[n-1]||0)+1}else s.st=0;me={...me,stats:s};try{await DB.doc("profiles/"+UID).update({stats:s})}catch(e){}}
+const sBlock=s=>`<div><b>${s.g}</b><small>Played</small></div><div><b>${s.g?Math.round(100*s.w/s.g):0}%</b><small>Wins</small></div><div><b>${s.st}</b><small>Streak</small></div><div><b>${s.best}</b><small>Best</small></div>`;
+function renderAcct(){$("#aE").textContent="";const on=!!me;$("#aOut").style.display=on?"none":"";$("#aIn").style.display=on?"":"none";
+ $("#aMsg").textContent=DB?"Pick a username. Your profile follows your claude.ai account to any device.":tried?"Cross-device accounts need you signed in to claude.ai on a page shared with Contributor access. You can still play as a guest.":"Checking your account…";$("#aForm").style.display=DB?"flex":"none";if(!on)return;
+ const s=me.stats;$("#aName").textContent="@"+me.username;$("#aStats").innerHTML=sBlock(s);const mx=Math.max(1,...s.dist.map(x=>x||0));
+ $("#dist").innerHTML=Array.from({length:8},(_,i)=>i).filter(i=>i<+ST.tries||s.dist[i]).map(i=>`<div class="row" style="gap:6px"><span style="flex:0 0 14px">${i+1}</span><div style="flex:1"><div class="bar" style="width:${Math.max(6,100*(s.dist[i]||0)/mx)}%">${s.dist[i]||0}</div></div></div>`).join("")}
+$("#fb").onclick=async()=>{const n=$("#fn").value.trim().toLowerCase(),e=$("#fE");if(!me){e.textContent="Create a profile first.";return}if(n===me.username){e.textContent="That’s you!";return}
+ try{const q=await DB.collection("profiles").where("username","==",n).get();if(q.empty){e.textContent="No one has that username yet.";return}const id=q.docs[0].id;if(me.friends.includes(id)){e.textContent="Already friends.";return}const f=[...me.friends,id];await DB.doc("profiles/"+UID).update({friends:f});me={...me,friends:f};$("#fn").value="";e.textContent="";renderFriends()}catch(x){e.textContent="Couldn’t add friend."}};
+async function renderFriends(){const l=$("#fList");$("#fAdd").style.display=me?"":"none";
+ if(!me){l.innerHTML=`<div class="card"><p class="sub">Create a profile to add friends and compare progress.</p><button class="btn">Account</button></div>`;l.querySelector("button").onclick=()=>show("acct");return}
+ if(!me.friends.length){l.innerHTML=`<p class="sub">No friends yet. Add a username above.</p>`;return}
+ const ps=await Promise.all(me.friends.map(id=>DB.doc("profiles/"+id).get().then(s=>s.data()).catch(()=>null)));
+ l.innerHTML=ps.map(u=>u&&u.stats?`<div class="card"><b>@${esc(u.username)}</b><div class="stats">${sBlock(u.stats)}</div></div>`:"").join("")}
+
+/* boot */
+function boot(){apply();$("#who").textContent=cur||"Sign in";const h=codeFromUrl();
+ if(h){const w=dec(h);if(/^[a-z]{4,8}$/.test(w)){secret=w;fromLink=true;startGame();toast("Someone challenged you!")}}}
+addEventListener("hashchange",boot);boot();cloud();
+</script></body></html>
