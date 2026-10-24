@@ -229,7 +229,7 @@ function finish(win,n){over=true;setTimeout(()=>{
 $("#again").onclick=()=>{if(fromLink){fromLink=false;try{history.replaceState(null,"",GH?"/guessit/":location.href.split("#")[0])}catch(e){}openSetup("link")}else{guesser=3-guesser;openSetup("pass")}};
 
 /* accounts via your own server */
-const API_URL=""; // "" = same server that serves this page. For GitHub Pages use e.g. "https://your-app.onrender.com"
+const API_URL="https://guessit-r0dt.onrender.com"; // your Render server
 cur=null;let me=null,TOK=ls.get("gi_tok",null),online=false,tried=false,inv=[];
 const esc=s=>String(s).replace(/[<>&"']/g,"");
 async function api(p,method="GET",body){let r;try{r=await fetch(API_URL+"/api"+p,{method,headers:{"Content-Type":"application/json",...(TOK?{Authorization:"Bearer "+TOK}:{})},body:body?JSON.stringify(body):undefined})}catch(e){throw new Error("Can’t reach the server")}
