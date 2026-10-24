@@ -1,0 +1,8 @@
+{
+  "name": "guess-it",
+  "version": "1.0.0",
+  "description": "Guess It! two-player word game server",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
